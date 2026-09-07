@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111816">
+    <meta name="description" content="服务没有起来时，先把问题从日志现象、进程状态、端口占用和托管环境中一层层拆开。">
+    <title>定位设备端服务启动失败的几个层次 | 周思朝的数字花园</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/site.css">
+    <link rel="alternate" type="application/atom+xml" title="周思朝的数字花园" href="/feed.xml">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到正文</a>
+    <header class="site-header">
+  <div class="container nav-wrap">
+    <a class="site-mark" href="/" aria-label="回到首页">
+      <span class="mark-dot"></span>
+      <span>ZSZ</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="/#notes">笔记</a>
+      <a href="/#projects">项目</a>
+      <a href="/about/">关于</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="github-link" href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <button class="icon-button theme-toggle" type="button" aria-label="切换主题" title="切换主题">
+        <span class="theme-icon" aria-hidden="true"></span>
+      </button>
+      <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="打开导航菜单">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航" hidden>
+    <a href="/#notes">笔记</a>
+    <a href="/#projects">项目</a>
+    <a href="/about/">关于</a>
+    <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub ↗</a>
+  </nav>
+</header>
+
+    <main id="main-content"><article class="post-shell">
+  <div class="article-progress" aria-hidden="true"><span></span></div>
+  <div class="article-topline container">
+    <a href="/#notes" class="back-link">返回文章</a>
+    <span>2026.09.06</span>
+  </div>
+  <header class="post-header container">
+    <p class="eyebrow">嵌入式 Linux</p>
+    <h1>定位设备端服务启动失败的几个层次</h1>
+    <p class="post-lead">服务没有起来时，先把问题从日志现象、进程状态、端口占用和托管环境中一层层拆开。</p>
+    <div class="post-meta">
+      <span></span>
+      <span>7 分钟阅读</span>
+    </div>
+  </header>
+  <div class="post-content container">
+    <p>设备端服务启动失败，最容易犯的错误是只盯着最后一行报错。日志记录的是结果，而服务是否真正被托管、环境变量是否注入、端口是否被其他进程占用，往往才是原因。</p>
+
+<h2 id="从进程开始">从进程开始</h2>
+
+<p>先确认目标进程是否仍在运行，然后检查它的父进程和启动参数。一个旧进程遗留的监听端口，常常会让新的启动失败看起来像是代码问题。</p>
+
+<h2 id="区分历史与当前">区分历史与当前</h2>
+
+<p>服务管理器保存的审计记录不等于当前状态。诊断时应将历史错误、当前运行进程、实际端口 owner 和持续业务日志分开看，才能避免被旧错误带偏。</p>
+
+  </div>
+</article>
+</main>
+    <footer class="site-footer">
+  <div class="container footer-wrap">
+    <div>
+      <a class="site-mark" href="/"><span class="mark-dot"></span><span>ZSZ</span></a>
+      <p>记录构建，也记录思考。</p>
+    </div>
+    <div class="footer-links">
+      <a href="mailto:hello@zhousizhao.dev">Email</a>
+      <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="/feed.xml">RSS</a>
+    </div>
+    <p class="copyright">© 2026 周思朝</p>
+  </div>
+</footer>
+
+    <script src="/assets/js/site.js" defer></script>
+  </body>
+</html>

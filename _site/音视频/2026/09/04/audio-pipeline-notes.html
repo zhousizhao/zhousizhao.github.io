@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111816">
+    <meta name="description" content="实时系统的难处不只在声音如何被处理，更在于每一个缓冲区都必须准时抵达。">
+    <title>实时音频链路里，那些不能被忽略的时间 | 周思朝的数字花园</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/site.css">
+    <link rel="alternate" type="application/atom+xml" title="周思朝的数字花园" href="/feed.xml">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到正文</a>
+    <header class="site-header">
+  <div class="container nav-wrap">
+    <a class="site-mark" href="/" aria-label="回到首页">
+      <span class="mark-dot"></span>
+      <span>ZSZ</span>
+    </a>
+    <nav class="site-nav" aria-label="主导航">
+      <a href="/#notes">笔记</a>
+      <a href="/#projects">项目</a>
+      <a href="/about/">关于</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="github-link" href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+      <button class="icon-button theme-toggle" type="button" aria-label="切换主题" title="切换主题">
+        <span class="theme-icon" aria-hidden="true"></span>
+      </button>
+      <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="打开导航菜单">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航" hidden>
+    <a href="/#notes">笔记</a>
+    <a href="/#projects">项目</a>
+    <a href="/about/">关于</a>
+    <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub ↗</a>
+  </nav>
+</header>
+
+    <main id="main-content"><article class="post-shell">
+  <div class="article-progress" aria-hidden="true"><span></span></div>
+  <div class="article-topline container">
+    <a href="/#notes" class="back-link">返回文章</a>
+    <span>2026.09.04</span>
+  </div>
+  <header class="post-header container">
+    <p class="eyebrow">音视频</p>
+    <h1>实时音频链路里，那些不能被忽略的时间</h1>
+    <p class="post-lead">实时系统的难处不只在声音如何被处理，更在于每一个缓冲区都必须准时抵达。</p>
+    <div class="post-meta">
+      <span></span>
+      <span>5 分钟阅读</span>
+    </div>
+  </header>
+  <div class="post-content container">
+    <p>音频链路从来不是单点性能问题。采集、编码、传输、解码和播放共同组成一条时间线，任何一个缓冲策略的改变都会影响最终体验。</p>
+
+<h2 id="延迟不是唯一指标">延迟不是唯一指标</h2>
+
+<p>追求极低延迟时，系统对调度抖动会更敏感。更稳妥的目标是找到延迟、稳定性与音质之间能长期工作的平衡点。</p>
+
+<h2 id="先观测再优化">先观测，再优化</h2>
+
+<p>为每一段链路建立可观测的时间戳，比过早替换组件更有价值。只有看见真实的堵塞位置，优化才不会变成猜测。</p>
+
+  </div>
+</article>
+</main>
+    <footer class="site-footer">
+  <div class="container footer-wrap">
+    <div>
+      <a class="site-mark" href="/"><span class="mark-dot"></span><span>ZSZ</span></a>
+      <p>记录构建，也记录思考。</p>
+    </div>
+    <div class="footer-links">
+      <a href="mailto:hello@zhousizhao.dev">Email</a>
+      <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
+      <a href="/feed.xml">RSS</a>
+    </div>
+    <p class="copyright">© 2026 周思朝</p>
+  </div>
+</footer>
+
+    <script src="/assets/js/site.js" defer></script>
+  </body>
+</html>

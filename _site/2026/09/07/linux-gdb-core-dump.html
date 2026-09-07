@@ -1,0 +1,57 @@
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">layout</span><span class="pi">:</span> <span class="s">post</span>
+<span class="na">title</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Linux</span><span class="nv"> </span><span class="s">GDB：Core</span><span class="nv"> </span><span class="s">Dump</span><span class="nv"> </span><span class="s">分析入门"</span>
+<span class="na">date</span><span class="pi">:</span> <span class="s">2026-09-07</span>
+<span class="na">categories</span><span class="pi">:</span> <span class="s">Linux GDB</span>
+<span class="na">tags</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">Linux</span><span class="pi">,</span> <span class="nv">GDB</span><span class="pi">,</span> <span class="nv">Debug</span><span class="pi">]</span>
+<span class="nn">---</span>
+
+<span class="gh"># Linux GDB：Core Dump 分析入门</span>
+
+Core Dump 是 Linux 程序发生异常崩溃时保存的一份进程现场。
+
+通过 GDB 可以分析：
+<span class="p">
+-</span> 程序为什么崩溃
+<span class="p">-</span> 崩溃发生在哪一行
+<span class="p">-</span> 当前调用栈
+<span class="p">-</span> 当前线程
+<span class="p">-</span> 局部变量
+<span class="p">-</span> 寄存器
+<span class="p">-</span> 内存状态
+
+<span class="gu">## 1. 开启 Core Dump</span>
+
+<span class="p">```</span><span class="nl">bash
+</span><span class="nb">ulimit</span> <span class="nt">-c</span> unlimited
+</code></pre></div></div>
+
+<p>查看：</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ulimit</span> <span class="nt">-c</span>
+</code></pre></div></div>
+
+<h2 id="2-使用-gdb-分析">2. 使用 GDB 分析</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gdb ./app core
+</code></pre></div></div>
+
+<p>进入 GDB 后：</p>
+
+<pre><code class="language-gdb">bt
+</code></pre>
+
+<p>查看调用栈。</p>
+
+<h2 id="3-总结">3. 总结</h2>
+
+<p>以后可以继续研究：</p>
+
+<ul>
+  <li>GDB 调试</li>
+  <li>Core Dump</li>
+  <li>多线程崩溃</li>
+  <li>内存越界</li>
+  <li>Segmentation Fault</li>
+</ul>
+
