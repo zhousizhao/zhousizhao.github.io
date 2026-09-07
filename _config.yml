@@ -1,0 +1,20 @@
+title: "周思朝的技术笔记"
+description: "Embedded Linux / Audio / Video / C/C++"
+author: "周思朝"
+url: "https://zhousizhao.github.io"
+baseurl: ""
+timezone: Asia/Shanghai
+lang: zh-CN
+permalink: /posts/:title/
+markdown: kramdown
+highlighter: rouge
+plugins:
+  - jekyll-feed
+exclude:
+  - README.md
+  - 需求.md
+  - 技术栈.md
+  - 开发记录.md
+  - SOP.md
+  - 踩坑记录.md
+  - tests

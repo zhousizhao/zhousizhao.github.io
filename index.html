@@ -1,0 +1,71 @@
+---
+layout: default
+title: 首页
+---
+<section class="hero">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container hero-content">
+    <p class="eyebrow hero-kicker"><span></span> HELLO, I AM ZHOU SIZHAO</p>
+    <h1>把复杂的系统<br>变得清晰、可靠。</h1>
+    <p class="hero-description">专注嵌入式 Linux、音视频与底层工程实践。<br>这里记录那些从硬件到软件、从问题到答案的过程。</p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="#notes">阅读笔记 <span aria-hidden="true">↓</span></a>
+      <a class="text-link" href="{{ '/about/' | relative_url }}">认识我 <span aria-hidden="true">→</span></a>
+    </div>
+  </div>
+  <div class="hero-visual" aria-hidden="true">
+    <div class="signal signal-a"></div><div class="signal signal-b"></div><div class="signal signal-c"></div>
+    <div class="terminal-card">
+      <div class="terminal-top"><span></span><span></span><span></span><b>system.log</b></div>
+      <p><i>$</i> booting kernel...</p>
+      <p><i>✓</i> video pipeline online</p>
+      <p><i>✓</i> audio service ready</p>
+      <p class="cursor-line"><i>$</i> <em></em></p>
+    </div>
+    <div class="chip">RV1126B<br><small>ARM64 / Linux</small></div>
+  </div>
+  <a class="scroll-note" href="#notes"><span></span>SCROLL TO EXPLORE</a>
+</section>
+
+<section id="notes" class="notes-section section-space">
+  <div class="container">
+    <div class="section-heading">
+      <div><p class="eyebrow">01 / WRITING</p><h2>最近笔记</h2></div>
+      <div class="filter-group" role="group" aria-label="文章分类筛选">
+        <button class="filter-button active" type="button" data-filter="all">全部</button>
+        <button class="filter-button" type="button" data-filter="嵌入式 Linux">嵌入式</button>
+        <button class="filter-button" type="button" data-filter="音视频">音视频</button>
+        <button class="filter-button" type="button" data-filter="工程实践">工程实践</button>
+      </div>
+    </div>
+    <div class="post-list">
+      {% for post in site.posts %}
+      <article class="post-row" data-category="{{ post.category | default: '工程实践' }}">
+        <div class="post-date">{{ post.date | date: "%Y.<b>%m</b>" }}</div>
+        <div class="post-main">
+          <p class="post-category">{{ post.category | default: '工程实践' }}</p>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+          <p>{{ post.excerpt | strip_html | truncate: 100 }}</p>
+        </div>
+        <a class="row-arrow" href="{{ post.url | relative_url }}" aria-label="阅读 {{ post.title }}">↗</a>
+      </article>
+      {% endfor %}
+    </div>
+    <p class="empty-state" hidden>这个分类的笔记正在整理中。</p>
+  </div>
+</section>
+
+<section id="projects" class="projects-section section-space">
+  <div class="container">
+    <div class="section-heading"><div><p class="eyebrow">02 / SELECTED WORK</p><h2>正在构建</h2></div><p class="section-aside">把可复用的经验，沉淀成可运行的系统。</p></div>
+    <div class="project-grid">
+      <article class="project-item project-dark"><p class="project-index">01</p><div class="project-icon icon-chip"><span></span></div><div><p class="post-category">嵌入式系统</p><h3>reCamera Pro 应用开发</h3><p>围绕 RV1126B 的设备端应用、视觉链路与稳定性工程。</p></div><span class="project-status">ONGOING</span></article>
+      <article class="project-item project-light"><p class="project-index">02</p><div class="project-icon icon-wave"><span></span><span></span><span></span></div><div><p class="post-category">音视频</p><h3>音频处理与 TTS 链路</h3><p>从采集、处理到合成输出，探索实时音频系统的边界。</p></div><span class="project-status">LAB</span></article>
+      <article class="project-item project-sage"><p class="project-index">03</p><div class="project-icon icon-eye"><span></span></div><div><p class="post-category">边缘视觉</p><h3>智能零售监控</h3><p>将目标检测能力落到可靠、可维护的边缘设备上。</p></div><span class="project-status">BUILDING</span></article>
+    </div>
+  </div>
+</section>
+
+<section class="quote-section">
+  <div class="container"><p class="eyebrow">A SMALL BELIEF</p><blockquote>好的工程，不只是让代码跑起来，<br>而是让不确定的世界也能被从容地处理。</blockquote></div>
+</section>

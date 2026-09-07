@@ -1,0 +1,22 @@
+---
+layout: default
+---
+<article class="post-shell">
+  <div class="article-progress" aria-hidden="true"><span></span></div>
+  <div class="article-topline container">
+    <a href="{{ '/' | relative_url }}#notes" class="back-link">返回文章</a>
+    <span>{{ page.date | date: "%Y.%m.%d" }}</span>
+  </div>
+  <header class="post-header container">
+    <p class="eyebrow">{{ page.category | default: '技术笔记' }}</p>
+    <h1>{{ page.title }}</h1>
+    {% if page.excerpt %}<p class="post-lead">{{ page.excerpt | strip_html }}</p>{% endif %}
+    <div class="post-meta">
+      <span>{{ site.author }}</span>
+      <span>{{ page.reading_time | default: '6 分钟阅读' }}</span>
+    </div>
+  </header>
+  <div class="post-content container">
+    {{ content }}
+  </div>
+</article>
