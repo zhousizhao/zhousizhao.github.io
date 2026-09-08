@@ -1,2 +1,24 @@
-title: 周思朝的数字花园
+title: 周思朝的个人博客
+description: 记录嵌入式 Linux、音视频链路、边缘 AI 与工程实践中的判断和复盘。
+author: 周思朝
+lang: zh-CN
+timezone: Asia/Shanghai
+url: https://zsz-blog.top
+baseurl: ""
 markdown: kramdown
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+collections:
+  projects:
+    output: false
+
+exclude:
+  - .git/
+  - .bundle/
+  - vendor/
+  - node_modules/
+  - Gemfile
+  - Gemfile.lock

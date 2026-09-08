@@ -1,403 +1,244 @@
 ---
-layout: null
+layout: default
+title: 首页
+description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频链路、边缘 AI 与工程实践。
 ---
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-width=1.0">
-<title>周思朝 | 3D 数字展厅</title>
-<style>
-  /* ====== 1. 全局与木质配色变量 ====== */
-  :root {
-    --bg-page: #f5f7fa;
-    --card-bg: #ffffff;
-    --text-main: #1d1d1f;
-    --text-sub: #6b7280;
-    --primary: #007aff;
-    
-    --center-w: 760px;
-    --side-w: 300px;
-    --gap: 40px;
-    
-    --shelf-h: 540px;
-    --shelf-d: 80px;
-    --shelf-th: 15px; 
-    
-    --wood-light: #c08552;
-    --wood-base: #a06535;
-    --wood-shadow: #824d25;
-    --wood-dark: #663811;
-    
-    --book-w: 35px;
-    --book-h: 120px;
-    --book-d: 70px;
-  }
-  
-  body {
-    margin: 0; padding: 0;
-    background-color: var(--bg-page);
-    background-image: radial-gradient(#d1d5db 1px, transparent 1px);
-    background-size: 24px 24px;
-    color: var(--text-main);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    overflow: hidden; height: 100vh; width: 100vw;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* ====== 2. 核心舞台 ====== */
-  .viewport { position: relative; width: 100%; height: 100%; perspective: 2200px; pointer-events: none; }
-  .stage { position: absolute; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
-
-  /* ====== 3. 容器定位 ====== */
-  .profile-card {
-    position: absolute; left: calc(50% - (var(--center-w) / 2)); top: calc(50% - 310px);
-    width: var(--center-w); height: 620px;
-    background: var(--card-bg); border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-    transform-style: preserve-3d; transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-    padding: 0; overflow: hidden; z-index: 10; pointer-events: auto;
-  }
-
-  .bookshelf-container {
-    position: absolute; left: calc(50% - (var(--center-w) / 2) - var(--gap) - var(--side-w)); top: calc(50% - 270px);
-    width: var(--side-w); height: var(--shelf-h);
-    transform-style: preserve-3d; transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform: rotateY(20deg) translateZ(-50px); z-index: 20; pointer-events: auto;
-  }
-
-  .project-rack-container {
-    position: absolute; left: calc(50% + (var(--center-w) / 2) + var(--gap)); top: calc(50% - 270px);
-    width: var(--side-w); height: var(--shelf-h);
-    transform-style: preserve-3d; transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform: rotateY(-20deg) translateZ(-50px);
-    background: #fff; border-radius: 16px; border: 1px solid #e5e7eb; box-shadow: 20px 20px 50px rgba(0,0,0,0.05);
-    padding: 20px; box-sizing: border-box; z-index: 20; pointer-events: auto;
-  }
-
-  /* ====== 4. 防抖联动 ====== */
-  .stage.state-left { transform: translateX(350px); }
-  .stage.state-left .bookshelf-container { transform: rotateY(0deg) translateZ(150px); }
-  .stage.state-left .profile-card { transform: rotateY(35deg) translateZ(-250px) translateX(150px); opacity: 0.5; filter: blur(4px); pointer-events: none; }
-  .stage.state-left .project-rack-container { transform: rotateY(45deg) translateZ(-500px); opacity: 0; pointer-events: none; }
-
-  .stage.state-right { transform: translateX(-350px); }
-  .stage.state-right .project-rack-container { transform: rotateY(0deg) translateZ(150px); }
-  .stage.state-right .profile-card { transform: rotateY(-35deg) translateZ(-250px) translateX(-150px); opacity: 0.5; filter: blur(4px); pointer-events: none; }
-  .stage.state-right .bookshelf-container { transform: rotateY(-45deg) translateZ(-500px); opacity: 0; pointer-events: none; }
-
-  /* ====== 5. CSS 3D 几何引擎 ====== */
-  .box3d { position: absolute; transform-style: preserve-3d; pointer-events: none; }
-  .face { position: absolute; box-sizing: border-box; border: 1px solid rgba(0,0,0,0.02); pointer-events: none; }
-  .face-front  { width: 100%; height: 100%; transform: translateZ(0); }
-  .face-back   { width: 100%; height: 100%; transform: translateZ(calc(var(--d) * -1)) rotateY(180deg); }
-  .face-top    { width: 100%; height: var(--d); top: 0; transform-origin: top; transform: rotateX(-90deg); }
-  .face-bottom { width: 100%; height: var(--d); bottom: 0; transform-origin: bottom; transform: rotateX(90deg); }
-  .face-left   { width: var(--d); height: 100%; left: 0; transform-origin: left; transform: rotateY(90deg); }
-  .face-right  { width: var(--d); height: 100%; right: 0; transform-origin: right; transform: rotateY(-90deg); }
-
-  /* ====== 6. 拼装实木书架 ====== */
-  .plank-left { width: 15px; height: 100%; top: 0; left: 0; --d: var(--shelf-d); }
-  .plank-right { width: 15px; height: 100%; top: 0; right: 0; --d: var(--shelf-d); }
-  .plank-top { width: 270px; height: var(--shelf-th); top: 0; left: 15px; --d: var(--shelf-d); }
-  .plank-bottom { width: 270px; height: var(--shelf-th); bottom: 0; left: 15px; --d: var(--shelf-d); }
-  .plank-s1 { width: 270px; height: var(--shelf-th); top: 180px; left: 15px; --d: var(--shelf-d); }
-  .plank-s2 { width: 270px; height: var(--shelf-th); top: 360px; left: 15px; --d: var(--shelf-d); }
-  .shelf-back { position: absolute; width: var(--side-w); height: var(--shelf-h); transform: translateZ(calc(var(--shelf-d) * -1)); background: var(--wood-dark); box-shadow: inset 0 0 60px rgba(0,0,0,0.6); pointer-events: none;}
-  
-  .plank-left .face, .plank-right .face { background: var(--wood-base); }
-  .plank-left .face-right, .plank-right .face-left { background: var(--wood-shadow); }
-  .plank-top .face, .plank-bottom .face, .plank-s1 .face, .plank-s2 .face { background: var(--wood-light); }
-  .plank-s1 .face-bottom, .plank-s2 .face-bottom { background: var(--wood-shadow); }
-  .rack-title { position: absolute; top: -45px; width: 100%; text-align: center; font-size: 1.1rem; font-weight: 700; color: #555; letter-spacing: 2px; transform: translateZ(50px); pointer-events: none;}
-
-  /* ====== 7. 实体书本 (极度重要的交互修正) ====== */
-  /* 统一类名 .shelf-book，便于 JS 精确获取 */
-  .shelf-book {
-    width: var(--book-w); height: var(--book-h);
-    --d: var(--book-d); 
-    cursor: pointer; z-index: 100;
-    pointer-events: auto !important; /* 强制开启书本容器的点击捕获 */
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  /* 强制开启书本所有子面的点击权限，防止穿透到背景 */
-  .shelf-book .face { cursor: pointer; pointer-events: auto !important; }
-  
-  .shelf-book .face-front { background: var(--bk-c); display: flex; align-items: center; justify-content: center; color: #fff; writing-mode: vertical-rl; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; box-shadow: inset 3px 0 6px rgba(0,0,0,0.2); }
-  .shelf-book .face-back { background: var(--bk-c); }
-  .shelf-book .face-left { background: var(--bk-c); filter: brightness(0.85); }
-  .shelf-book .face-right { background: #fff; background-image: repeating-linear-gradient(to right, transparent, transparent 1px, #ddd 1px, #ddd 3px); }
-  .shelf-book .face-top { background: #eee; background-image: repeating-linear-gradient(to bottom, transparent, transparent 1px, #ccc 1px, #ccc 3px); }
-  .shelf-book .face-bottom { background: #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
-
-  .bp-1 { top: 60px; left: 60px; --b-trans: translateZ(-5px); transform: var(--b-trans); } 
-  .bp-2 { top: 240px; left: 50px; --b-trans: translateZ(-5px); transform: var(--b-trans); } 
-  .bp-3 { top: 240px; left: 90px; --b-trans: translateZ(-5px); transform: var(--b-trans); } 
-  .bp-4 { top: 405px; left: 160px; transform-origin: bottom center; --b-trans: translateZ(-5px) rotateZ(12deg); transform: var(--b-trans); }
-
-  .shelf-book:hover { transform: var(--b-trans) translateZ(15px) rotateY(-5deg) !important; }
-  .shelf-book.is-locked { transform: var(--b-trans) translateZ(15px) !important; }
-
-  /* ====== 8. 项目置物架 ====== */
-  .project-box { width: 100%; padding: 15px; border-radius: 12px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transform: translateZ(10px); transition: 0.3s; text-decoration: none; color: inherit; display: block; margin-bottom: 20px;}
-  .project-box:hover { transform: translateZ(35px) scale(1.05); box-shadow: 0 15px 30px rgba(0,122,255,0.15); border-color: #007aff;}
-  .project-box h4 { margin: 0 0 5px; font-size: 1rem; color: #111;}
-  .project-box p { margin: 0; font-size: 0.8rem; color: var(--text-sub);}
-  
-  /* ====== 9. 个人主卡片 ====== */
-  .card-cover { height: 160px; background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%); }
-  .card-body { padding: 0 40px 40px; }
-  .avatar { width: 120px; height: 120px; border-radius: 50%; border: 6px solid var(--card-bg); background-color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,0.1); margin-top: -60px; position: relative; background-image: url('https://avatars.githubusercontent.com/u/9919?v=4'); background-size: cover; }
-  .header-content { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 20px; }
-  .info-text h1 { margin: 15px 0 5px; font-size: 2.2rem; font-weight: 700;}
-  .info-text p { margin: 0; color: var(--text-sub); font-size: 1.05rem; font-weight: 500;}
-  .bio-text { font-size: 1rem; line-height: 1.7; color: #4a4a4f; margin-bottom: 25px;}
-  .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-  .section-subtitle { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-sub); margin-bottom: 12px; font-weight: 600; }
-  .tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
-  .tag { background: #f0f4f8; color: #334155; padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500; }
-  .timeline-item { margin-bottom: 12px; border-left: 2px solid rgba(0,0,0,0.05); padding-left: 12px;}
-  .timeline-item h4 { margin: 0 0 2px; font-size: 0.95rem; color: var(--text-main); }
-  .timeline-item p { margin: 0; font-size: 0.85rem; color: var(--text-sub); }
-
-  /* ====== 10. 模态框 3D 翻书阅读器 ====== */
-  .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255, 0.6); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 100; }
-  .overlay.is-active { opacity: 1; pointer-events: auto; }
-  .book-scene { position: fixed; top: 50%; left: 50%; width: 85vw; max-width: 1100px; height: 80vh; max-height: 750px; z-index: 101; transform: translate(-50%, -45%) scale(0.9); opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); perspective: 2500px; }
-  .book-scene.is-active { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
-  .book-model { position: absolute; left: 25%; width: 50%; height: 100%; transform-style: preserve-3d; transition: transform 0.8s ease 0.1s; pointer-events: none; }
-  .page { position: absolute; width: 100%; height: 100%; background: #fdfdfc; border-radius: 4px 12px 12px 4px; box-shadow: inset 0 0 20px rgba(0,0,0,0.02), 15px 20px 40px rgba(0,0,0,0.15); padding: 40px; box-sizing: border-box; backface-visibility: hidden; display: flex; flex-direction: column; pointer-events: auto; }
-  .cover-wrapper { position: absolute; width: 100%; height: 100%; transform-origin: left center; transform-style: preserve-3d; transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1) 0.1s; z-index: 10; pointer-events: none; }
-  .cover-front { background: #111; color: #fff; justify-content: center; align-items: center; text-align: center; border-left: 8px solid rgba(0,0,0,0.3); border-radius: 4px 12px 12px 4px; transition: background 0.3s; }
-  .cover-front h1 { font-size: 2.5rem; margin: 0 0 10px; font-weight: 700;}
-  .cover-back { transform: rotateY(180deg); border-radius: 12px 4px 4px 12px; border-right: 1px solid #eaeaea; justify-content: center; }
-  .right-page { z-index: 1; border-left: 1px solid #eaeaea; }
-  .book-scene.is-open .cover-wrapper { transform: rotateY(-180deg); }
-  .book-scene.is-open .book-model { transform: translateX(50%); }
-  .close-btn { position: absolute; top: 20px; right: 20px; background: #f0f0f0; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; color: #555; opacity: 0; transition: 0.3s; display: flex; justify-content: center; align-items: center; z-index: 100;}
-  .close-btn svg { width: 20px; height: 20px; fill: currentColor; }
-  .book-scene.is-open .close-btn { opacity: 1; transition-delay: 1s; }
-  .close-btn:hover { background: #e0e0e0; color: #000; }
-  ul.article-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; }
-  ul.article-list li { margin-bottom: 10px; display: none; }
-  ul.article-list a { display: block; padding: 10px 14px; border-radius: 8px; color: #333; text-decoration: none; font-size: 1.1rem; font-weight: 500; transition: all 0.2s; }
-  ul.article-list a:hover { background: #f5f5f7; color: var(--primary); transform: translateX(5px); }
-  .date { font-size: 0.85rem; color: #999; display: block; margin-top: 4px; font-weight: normal;}
-</style>
-</head>
-<body>
-
-<div class="viewport">
-  <div class="stage" id="stage">
-    
-    <!-- ================= 左侧：完美原木色书架 ================= -->
-    <div class="bookshelf-container" id="bookshelf">
-      <div class="rack-title">📚 Tech Notes</div>
-      <div class="shelf-back"></div>
-      
-      <div class="box3d plank-left"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-      <div class="box3d plank-right"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-      <div class="box3d plank-top"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-      <div class="box3d plank-bottom"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-      
-      <div class="box3d plank-s1"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-      <div class="box3d plank-s2"><div class="face face-front"></div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div></div>
-
-      <!-- 4 本真 3D 实体书 (已统一类名为 .shelf-book) -->
-      <div class="box3d shelf-book bp-1" style="--bk-c: #7b2cbf;" data-title="IoT Protocols" data-cate="iot" data-desc="MQTT 通信、ESP32-S3 及 Web 交互控制。">
-        <div class="face face-front">IoT Protocols</div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div>
+{% assign latest_post = site.posts | first %}
+{% assign shelf_category_names = "" %}
+{% for post in site.posts %}
+  {% assign post_category = post.categories | first | default: post.category | default: "工程笔记" %}
+  {% assign category_marker = post_category | append: "|" %}
+  {% unless shelf_category_names contains category_marker %}
+    {% assign shelf_category_names = shelf_category_names | append: category_marker %}
+  {% endunless %}
+{% endfor %}
+{% assign shelf_categories = shelf_category_names | split: "|" %}
+<section class="home-hero" aria-labelledby="home-title">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container hero-layout">
+    <div class="hero-copy">
+      <p class="hero-kicker">嵌入式 Linux / 音视频链路 / 边缘 AI</p>
+      <h1 id="home-title">周思朝的个人博客</h1>
+      <p class="hero-lede">这里收集我在软硬件交界处做过的判断：一条链路为什么延迟，一个服务为什么启动失败，以及一个模型怎样在资源有限的设备上跑起来。</p>
+      <div class="hero-actions" aria-label="首页操作">
+        <a class="button button-primary" href="#notes">阅读文章</a>
+        <a class="button button-secondary" href="{{ '/about/' | relative_url }}">了解我</a>
       </div>
-      
-      <div class="box3d shelf-book bp-2" style="--bk-c: #1e3a5f;" data-title="Linux Kernel" data-cate="linux" data-desc="设备树配置、字符设备驱动、内核调试记录。">
-        <div class="face face-front">Linux Kernel</div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div>
-      </div>
-      <div class="box3d shelf-book bp-3" style="--bk-c: #0b6e4f;" data-title="AI Edge" data-cate="ai" data-desc="MIPI CSI, ALSA, RKNN 转换及 YOLO 部署。">
-        <div class="face face-front">AI Edge</div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div>
-      </div>
-      
-      <div class="box3d shelf-book bp-4" style="--bk-c: #f75c03;" data-title="Misc" data-cate="misc" data-desc="日常开发踩坑与工具链配置记录。">
-        <div class="face face-front">Misc Notes</div><div class="face face-back"></div><div class="face face-top"></div><div class="face face-bottom"></div><div class="face face-left"></div><div class="face face-right"></div>
-      </div>
+      {% if latest_post %}
+        <p class="latest-note">最新笔记：<a href="{{ latest_post.url | relative_url }}">{{ latest_post.title }}</a></p>
+      {% endif %}
     </div>
 
-    <!-- ================= 中央：高级亮色个人卡片 ================= -->
-    <div class="profile-card" id="profile">
-      <div class="card-cover"></div>
-      <div class="card-body">
-        <div class="header-content">
-          <div class="avatar"></div>
-          <div class="info-text">
-            <h1>周思朝</h1>
-            <p>嵌入式软件工程师 / Embedded Developer</p>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="workbench" data-tilt>
+        <div class="bench-shadow"></div>
+        <div class="bench-board board-back"></div>
+        <div class="bench-board board-mid"></div>
+        <div class="identity-panel">
+          <div class="panel-header">
+            <span></span>
+            <span></span>
           </div>
-        </div>
-        
-        <div class="bio-text">
-          你好，我是周思朝。目前就职于矽递科技 (Seeed Studio)。致力于底层软件架构设计，热衷于探索 Linux 内核驱动、外设接口管道及 AI 边缘侧部署。通过自律与坚持，享受代码与硬件完美协作的瞬间。
-        </div>
-
-        <div class="grid-2col">
-          <div>
-            <div class="section-subtitle">Tech Stack</div>
-            <div class="tag-cloud">
-              <span class="tag">Linux Kernel</span>
-              <span class="tag">Rockchip SoC</span>
-              <span class="tag">RV1106 / SG2002</span>
-              <span class="tag">MIPI CSI / ALSA</span>
-              <span class="tag">YOLO / AI Edge</span>
-              <span class="tag">FreeRTOS</span>
+          <div class="identity-main">
+            <div class="avatar-shell" data-avatar-shell>
+              <span class="avatar-fallback">ZS</span>
+              <img src="https://github.com/zhousizhao.png" alt="" loading="lazy" data-avatar>
+            </div>
+            <div>
+              <strong>Zhou Sizhao</strong>
+              <small>Seeed Studio / R&amp;D</small>
             </div>
           </div>
-          <div>
-            <div class="section-subtitle">Experience</div>
-            <div class="timeline-item">
-              <h4>Seeed Studio (矽递科技)</h4>
-              <p>R&D Dept. / Embedded Dev</p>
-            </div>
-            <div class="timeline-item">
-              <h4>Energy Storage Co.</h4>
-              <p>Intern / GD32 & RTOS</p>
-            </div>
+          <div class="signal-lines">
+            <span style="--w: 74%"></span>
+            <span style="--w: 48%"></span>
+            <span style="--w: 86%"></span>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- ================= 右侧：3D 项目置物架 ================= -->
-    <div class="project-rack-container" id="rack">
-      <div class="rack-title">🛠️ Projects</div>
-      <a href="https://github.com/zhousizhao" target="_blank" class="project-box" style="pointer-events: auto;">
-        <h4>📷 智能边缘相机</h4><p>基于 SG2002 的 NPU 目标检测部署</p>
-      </a>
-      <a href="https://github.com/zhousizhao" target="_blank" class="project-box" style="pointer-events: auto;">
-        <h4>🏠 IoT 智能中枢</h4><p>ESP32 结合 Home Assistant 通信</p>
-      </a>
-      <a href="https://github.com/zhousizhao" target="_blank" class="project-box" style="pointer-events: auto;">
-        <h4>⚙️ 跨平台监控端</h4><p>使用 Qt 构建的实时数据交互大屏</p>
-      </a>
-    </div>
-
   </div>
-</div>
+</section>
 
-<!-- ================= 模态框：阅读器 ================= -->
-<div class="overlay" id="overlay"></div>
-<div class="book-scene" id="scene">
-  <div class="book-model">
-    <div class="page right-page">
-      <button class="close-btn" id="close-btn"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-      <h2 id="modal-right-title" style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">目录</h2>
-      <ul class="article-list" id="article-list">
-        {% for post in site.posts %}
-        <li data-category="{{ post.category | downcase }}">
-          <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}<span class="date">{{ post.date | date: "%Y-%m-%d" }}</span></a>
-        </li>
-        {% endfor %}
-        <li id="empty-state" style="color:#888; padding:20px; display:none;">该分类暂无笔记。</li>
-      </ul>
-    </div>
-    <div class="cover-wrapper" id="cover">
-      <div class="page cover-back">
-        <h3 id="modal-left-title" style="margin:0 0 15px; font-size:1.6rem;">Book Title</h3>
-        <p id="modal-left-desc" style="color:#555; line-height:1.8;">Description...</p>
+<section id="notes" class="section-band notes-section" aria-labelledby="notes-title">
+  <div class="container">
+    <div class="section-heading">
+      <div>
+        <p class="section-kicker">文章</p>
+        <h2 id="notes-title">按问题留下的工程记录</h2>
       </div>
-      <div class="page cover-front" id="modal-front">
-        <h1 id="modal-front-title">TITLE</h1>
-        <p>Tech Archive</p>
+      <p>不写泛泛的教程，只保留从现象、假设、验证到结论的过程。</p>
+    </div>
+
+    <div class="filter-row" role="toolbar" aria-label="按分类筛选文章">
+      <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全部</button>
+      {% assign rendered_categories = "" %}
+      {% for post in site.posts %}
+        {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
+        {% assign marker = category | append: "|" %}
+        {% unless rendered_categories contains marker %}
+          <button class="filter-button" type="button" data-filter="{{ category | escape }}" aria-pressed="false">{{ category }}</button>
+          {% assign rendered_categories = rendered_categories | append: marker %}
+        {% endunless %}
+      {% endfor %}
+    </div>
+
+    <div class="bookshelf-intro">
+      <p>书架上的每一本笔记都对应一个真实分类。选中一本，翻开目录。</p>
+      <span>{{ shelf_categories | size }} 本分类笔记</span>
+    </div>
+
+    <div class="bookshelf-scene" data-shelf-scene>
+      <div class="bookshelf-depth" data-bookshelf-tilt>
+        <div class="bookshelf" role="list" aria-label="文章分类书架">
+          <div class="shelf-back"></div>
+          <div class="shelf-side shelf-side-left"></div>
+          <div class="shelf-side shelf-side-right"></div>
+          <div class="shelf-plank shelf-plank-top"></div>
+          <div class="shelf-plank shelf-plank-bottom"></div>
+          <div class="shelf-label">FIELD NOTES</div>
+          <div class="shelf-books">
+            {% for category in shelf_categories %}
+              {% assign tone_index = forloop.index | modulo: 4 | plus: 1 %}
+              {% assign category_count = 0 %}
+              {% for post in site.posts %}
+                {% assign post_category = post.categories | first | default: post.category | default: "工程笔记" %}
+                {% if post_category == category %}
+                  {% assign category_count = category_count | plus: 1 %}
+                {% endif %}
+              {% endfor %}
+              {% case category %}
+                {% when "音视频" %}
+                  {% assign category_description = "采集、缓冲、同步和回放：追踪一段声音在设备里走过的完整路径。" %}
+                {% when "嵌入式 Linux" %}
+                  {% assign category_description = "启动流程、服务状态、驱动边界和系统调试，把黑盒问题拆成可验证的假设。" %}
+                {% when "Linux GDB" %}
+                  {% assign category_description = "从 core dump 到调用栈，用调试器还原程序最后一次失控的现场。" %}
+                {% when "工程实践" %}
+                  {% assign category_description = "记录项目推进、工具链配置和复盘方法，沉淀下一次可以直接复用的流程。" %}
+                {% else %}
+                  {% assign category_description = "围绕这个主题持续整理问题、验证过程和最终结论。" %}
+              {% endcase %}
+              <button class="shelf-book book-tone-{{ tone_index }}" type="button" role="listitem" data-book-category="{{ category | escape }}" data-book-title="{{ category | escape }}" data-book-description="{{ category_description | escape }}" aria-pressed="false">
+                <span class="book-face book-back" aria-hidden="true"></span>
+                <span class="book-face book-pages" aria-hidden="true"></span>
+                <span class="book-face book-top" aria-hidden="true"></span>
+                <span class="book-face book-front">
+                  <small>NOTEBOOK</small>
+                  <strong>{{ category }}</strong>
+                  <em>{{ category_count }} 篇</em>
+                </span>
+              </button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="post-index">
+      {% for post in site.posts %}
+        {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
+        <article class="post-item" data-category="{{ category | escape }}">
+          <time datetime="{{ post.date | date_to_xmlschema }}">
+            <span>{{ post.date | date: "%d" }}</span>
+            {{ post.date | date: "%Y.%m" }}
+          </time>
+          <div class="post-item-main">
+            <p>{{ category }}</p>
+            <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+            <p class="post-excerpt">{{ post.description | default: post.excerpt | strip_html | normalize_whitespace | truncate: 118 }}</p>
+          </div>
+          <a class="read-link" href="{{ post.url | relative_url }}" aria-label="阅读 {{ post.title | escape }}">阅读文章</a>
+        </article>
+      {% endfor %}
+    </div>
+    <p class="empty-state" hidden data-empty-state>这个分类暂时没有文章。</p>
+  </div>
+</section>
+
+<section id="projects" class="section-band projects-section" aria-labelledby="projects-title">
+  <div class="container project-layout">
+    <div class="section-heading project-heading">
+      <div>
+        <p class="section-kicker">项目</p>
+        <h2 id="projects-title">正在被反复打磨的工具和系统</h2>
+      </div>
+      <p>项目源码和阶段性记录会陆续整理到 GitHub。</p>
+    </div>
+    <div class="project-scene" data-project-scene>
+      <div class="project-deck" data-project-deck>
+        <div class="deck-board" aria-hidden="true"></div>
+        <div class="project-grid">
+          {% for project in site.projects %}
+            <a class="project-card" href="{{ project.link | default: 'https://github.com/zhousizhao?tab=repositories' }}" target="_blank" rel="noreferrer" data-tilt-card>
+              <span class="project-icon" aria-hidden="true">{% include project-icon.html name=project.icon %}</span>
+              <span class="project-card-text">
+                <small>{{ project.name }}</small>
+                <strong>{{ project.title }}</strong>
+                <em>{{ project.stack }}</em>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="about-strip" aria-labelledby="about-strip-title">
+  <div class="container about-strip-grid">
+    <div>
+      <p class="section-kicker">关于</p>
+      <h2 id="about-strip-title">把问题拆开，再把它做实。</h2>
+    </div>
+    <p>我是周思朝，目前就职于矽递科技，主要做嵌入式 Linux、音视频和边缘视觉相关的软件工作。这里不是成果橱窗，而是一份持续更新的工程笔记。</p>
+    <a class="quiet-link" href="{{ '/about/' | relative_url }}">查看完整介绍</a>
+  </div>
+</section>
+
+<div class="notebook-modal" role="dialog" aria-modal="true" aria-labelledby="notebook-modal-title" hidden data-notebook-modal>
+  <button class="notebook-backdrop" type="button" aria-label="关闭分类笔记本" data-notebook-close></button>
+  <div class="notebook-scene">
+    <div class="open-notebook">
+      <section class="notebook-page notebook-page-right" aria-label="文章目录">
+        <div class="notebook-page-header">
+          <div>
+            <p class="notebook-kicker">目录</p>
+            <h3>文章索引</h3>
+          </div>
+          <button class="notebook-close" type="button" data-notebook-close>关闭</button>
+        </div>
+        <div class="notebook-article-list">
+          {% for post in site.posts %}
+            {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
+            <a class="notebook-article" href="{{ post.url | relative_url }}" data-modal-post data-category="{{ category | escape }}">
+              <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+              <span>
+                <strong>{{ post.title }}</strong>
+                <small>{{ post.description | default: post.excerpt | strip_html | normalize_whitespace | truncate: 86 }}</small>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+        <p class="notebook-empty" hidden data-modal-empty>这个分类暂时没有文章。</p>
+      </section>
+      <div class="notebook-cover" data-notebook-cover>
+        <section class="notebook-cover-face notebook-cover-back" aria-label="分类说明" data-cover-back>
+          <p class="notebook-kicker">分类笔记</p>
+          <h3 id="notebook-modal-title" data-modal-category>分类</h3>
+          <p class="notebook-description" data-modal-description></p>
+          <div class="notebook-count">
+            <strong data-modal-count>0</strong>
+            <span>篇公开笔记</span>
+          </div>
+          <p class="notebook-hint">选择右侧目录中的文章，进入完整阅读页。</p>
+        </section>
+        <div class="notebook-cover-face notebook-cover-front" aria-hidden="true">
+          <span>FIELD NOTES</span>
+          <strong data-cover-title>分类</strong>
+          <em>Zhou Sizhao</em>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
-<script>
-  // 1. 防抖状态机
-  const stage = document.getElementById('stage');
-  let currentState = 'CENTER'; 
-  let isModalOpen = false;
-  let mouseXRatio = 0.5;
-
-  document.addEventListener('mousemove', (e) => {
-    if (isModalOpen || window.innerWidth < 1000) return;
-    mouseXRatio = e.clientX / window.innerWidth;
-    
-    if (currentState === 'CENTER') {
-      if (mouseXRatio < 0.25) { currentState = 'LEFT'; stage.className = 'stage state-left'; } 
-      else if (mouseXRatio > 0.75) { currentState = 'RIGHT'; stage.className = 'stage state-right'; }
-    } 
-    else if (currentState === 'LEFT') {
-      if (mouseXRatio > 0.50) { currentState = 'CENTER'; stage.className = 'stage'; }
-    } 
-    else if (currentState === 'RIGHT') {
-      if (mouseXRatio < 0.50) { currentState = 'CENTER'; stage.className = 'stage'; }
-    }
-  });
-
-  // 2. 实体书本点击绑定 (核心修复：精确捕捉 .shelf-book)
-  const scene = document.getElementById('scene');
-  const overlay = document.getElementById('overlay');
-  const closeBtn = document.getElementById('close-btn');
-  const bookItems = document.querySelectorAll('.shelf-book');
-  
-  const modalFront = document.getElementById('modal-front');
-  const modalFrontTitle = document.getElementById('modal-front-title');
-  const modalLeftTitle = document.getElementById('modal-left-title');
-  const modalLeftDesc = document.getElementById('modal-left-desc');
-  const modalRightTitle = document.getElementById('modal-right-title');
-  const articleListItems = document.querySelectorAll('#article-list li[data-category]');
-  const emptyState = document.getElementById('empty-state');
-
-  bookItems.forEach(item => {
-    item.addEventListener('click', function(e) {
-      if(isModalOpen) return;
-      e.stopPropagation();
-      
-      isModalOpen = true; 
-      this.classList.add('is-locked');
-      
-      const frontColor = this.style.getPropertyValue('--bk-c');
-      modalFront.style.background = frontColor;
-      modalFrontTitle.textContent = this.getAttribute('data-title');
-      modalLeftTitle.textContent = this.getAttribute('data-title');
-      modalLeftDesc.textContent = this.getAttribute('data-desc');
-      modalRightTitle.textContent = this.getAttribute('data-title') + " 笔记";
-      
-      const cate = this.getAttribute('data-cate');
-      let matchCount = 0;
-      articleListItems.forEach(li => {
-        if (li.getAttribute('data-category') === cate) {
-          li.style.display = 'block'; matchCount++;
-        } else {
-          li.style.display = 'none';
-        }
-      });
-      emptyState.style.display = (matchCount === 0 && articleListItems.length > 0) ? 'block' : 'none';
-
-      setTimeout(() => {
-        overlay.classList.add('is-active');
-        scene.classList.add('is-active');
-        setTimeout(() => { scene.classList.add('is-open'); }, 200);
-      }, 150);
-    });
-  });
-
-  const closeBook = () => {
-    if(!isModalOpen) return;
-    scene.classList.remove('is-open');
-    bookItems.forEach(item => item.classList.remove('is-locked'));
-    
-    setTimeout(() => { 
-      scene.classList.remove('is-active'); 
-      overlay.classList.remove('is-active'); 
-      isModalOpen = false;
-      
-      if (mouseXRatio < 0.25) { stage.className = 'stage state-left'; } 
-      else if (mouseXRatio > 0.75) { stage.className = 'stage state-right'; } 
-      else { stage.className = 'stage'; }
-    }, 600);
-  };
-
-  closeBtn.addEventListener('click', closeBook);
-  overlay.addEventListener('click', closeBook);
-</script>
-</body>
-</html>

@@ -1,14 +1,14 @@
 <footer class="site-footer">
-  <div class="container footer-wrap">
+  <div class="container footer-grid">
     <div>
-      <a class="site-mark" href="{{ '/' | relative_url }}"><span class="mark-dot"></span><span>ZSZ</span></a>
-      <p>记录构建，也记录思考。</p>
+      <a class="footer-brand" href="{{ '/' | relative_url }}">周思朝的数字花园</a>
+      <p>记录系统如何运行，也记录判断如何形成。</p>
     </div>
-    <div class="footer-links">
-      <a href="mailto:hello@zhousizhao.dev">Email</a>
+    <nav class="footer-links" aria-label="页脚导航">
+      <a href="mailto:hello@zsz-blog.top">Email</a>
       <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
       <a href="{{ '/feed.xml' | relative_url }}">RSS</a>
-    </div>
+    </nav>
     <p class="copyright">© {{ 'now' | date: "%Y" }} 周思朝</p>
   </div>
 </footer>

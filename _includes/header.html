@@ -1,28 +1,32 @@
-<header class="site-header">
-  <div class="container nav-wrap">
-    <a class="site-mark" href="{{ '/' | relative_url }}" aria-label="回到首页">
-      <span class="mark-dot"></span>
-      <span>ZSZ</span>
+<header class="site-header" data-site-header>
+  <div class="container nav-shell">
+    <a class="brand" href="{{ '/' | relative_url }}" aria-label="回到首页">
+      <span class="brand-mark" aria-hidden="true">zsz</span>
+      <span class="brand-copy">
+        <strong>周思朝</strong>
+        <small>个人博客</small>
+      </span>
     </a>
-    <nav class="site-nav" aria-label="主导航">
-      <a href="{{ '/' | relative_url }}#notes">笔记</a>
+
+    <nav class="desktop-nav" aria-label="主导航">
+      <a href="{{ '/' | relative_url }}#notes">文章</a>
       <a href="{{ '/' | relative_url }}#projects">项目</a>
-      <a href="{{ '/about/' | relative_url }}">关于</a>
+      <a href="{{ '/about/' | relative_url }}"{% if page.url == '/about/' %} aria-current="page"{% endif %}>关于</a>
     </nav>
+
     <div class="nav-actions">
-      <a class="github-link" href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
-      <button class="icon-button theme-toggle" type="button" aria-label="切换主题" title="切换主题">
-        <span class="theme-icon" aria-hidden="true"></span>
-      </button>
-      <button class="menu-toggle" type="button" aria-controls="mobile-menu" aria-expanded="false" aria-label="打开导航菜单">
-        <span></span><span></span>
+      <a class="github-link" href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
+      <button class="nav-toggle" type="button" aria-controls="mobile-nav" aria-expanded="false" aria-label="打开导航菜单" data-nav-toggle>
+        <span></span>
+        <span></span>
       </button>
     </div>
   </div>
-  <nav id="mobile-menu" class="mobile-menu" aria-label="移动端导航" hidden>
-    <a href="{{ '/' | relative_url }}#notes">笔记</a>
+
+  <nav id="mobile-nav" class="mobile-nav" aria-label="移动端导航" hidden data-mobile-nav>
+    <a href="{{ '/' | relative_url }}#notes">文章</a>
     <a href="{{ '/' | relative_url }}#projects">项目</a>
     <a href="{{ '/about/' | relative_url }}">关于</a>
-    <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub ↗</a>
+    <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
   </nav>
 </header>

@@ -1,22 +1,55 @@
 ---
 layout: default
 ---
+{% assign post_category = page.categories | first | default: page.category | default: "工程笔记" %}
 <article class="post-shell">
   <div class="article-progress" aria-hidden="true"><span></span></div>
-  <div class="article-topline container">
-    <a href="{{ '/' | relative_url }}#notes" class="back-link">返回文章</a>
+  <div class="post-topline container">
+    <a class="quiet-link" href="{{ '/' | relative_url }}#notes">返回文章列表</a>
     <span>{{ page.date | date: "%Y.%m.%d" }}</span>
   </div>
+
   <header class="post-header container">
-    <p class="eyebrow">{{ page.category | default: '技术笔记' }}</p>
+    <p class="post-kicker">{{ post_category }}</p>
     <h1>{{ page.title }}</h1>
-    {% if page.excerpt %}<p class="post-lead">{{ page.excerpt | strip_html }}</p>{% endif %}
-    <div class="post-meta">
+    {% if page.excerpt %}
+      <p class="post-lead">{{ page.excerpt | strip_html }}</p>
+    {% endif %}
+    <div class="post-meta" aria-label="文章信息">
       <span>{{ site.author }}</span>
-      <span>{{ page.reading_time | default: '6 分钟阅读' }}</span>
+      {% if page.tags %}<span>{{ page.tags | join: " / " }}</span>{% endif %}
     </div>
   </header>
-  <div class="post-content container">
-    {{ content }}
+
+  <details class="post-toc-inline container" data-post-toc-inline hidden>
+    <summary>本文目录</summary>
+    <nav class="post-toc-list" aria-label="本文目录" data-post-toc-mobile></nav>
+  </details>
+
+  <div class="post-body">
+    <div class="post-content">
+      {{ content }}
+    </div>
+    <aside class="post-toc" data-post-toc hidden>
+      <p class="post-toc-title">本文目录</p>
+      <nav class="post-toc-list" aria-label="本文目录" data-post-toc-desktop></nav>
+    </aside>
   </div>
+
+  <nav class="post-neighbors container" aria-label="相邻文章">
+    {% if page.previous %}
+      <a class="neighbor-link" href="{{ page.previous.url | relative_url }}">
+        <span>上一篇</span>
+        <strong>{{ page.previous.title }}</strong>
+      </a>
+    {% else %}
+      <span></span>
+    {% endif %}
+    {% if page.next %}
+      <a class="neighbor-link next" href="{{ page.next.url | relative_url }}">
+        <span>下一篇</span>
+        <strong>{{ page.next.title }}</strong>
+      </a>
+    {% endif %}
+  </nav>
 </article>
