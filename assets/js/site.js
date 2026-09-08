@@ -145,8 +145,9 @@
       const cardH = projectCards[0] ? projectCards[0].offsetHeight : 0;
       if (!cardH) return;
       const gap = parseFloat(getComputedStyle(projectDeck.querySelector(".project-grid")).rowGap) || 0;
-      const visible = Math.min(3, projectCards.length);
-      // 场景高度精确等于 3 张卡 + 2 个间距，保证“一次只显示三个”
+      // 场景恒为 3 张卡 + 2 个间距高：项目不足 3 个时居中卡完整、相邻卡仍可见，
+      // 项目多时不喧宾夺主，保证“一次只显示三个”
+      const visible = 3;
       projectScene.style.height = `${Math.round(cardH * visible + gap * (visible - 1))}px`;
       const viewH = projectScene.clientHeight;
       const pad = Math.max(0, viewH / 2 - cardH / 2);
@@ -161,14 +162,32 @@
       const viewH = projectScene.clientHeight;
       const mid = viewH / 2;
       const txMax = Math.min(64, projectScene.clientWidth * 0.07);
+      // “镜头对准中间”：先找出离场景中心最近的卡，强制它为完整态，
+      // 其余卡仍按距离做曲面渐隐。项目只有 1 张时也始终满显示。
+      let focusIndex = 0;
+      let focusDist = Infinity;
       projectCards.forEach((card, index) => {
         const center = (cardBases[index] || 0) - projectDeck.scrollTop;
-        const t = Math.max(-1.15, Math.min(1.15, (center - mid) / mid));
+        const dist = Math.abs(center - mid);
+        if (dist < focusDist) {
+          focusDist = dist;
+          focusIndex = index;
+        }
+      });
+      projectCards.forEach((card, index) => {
+        const center = (cardBases[index] || 0) - projectDeck.scrollTop;
+        let t = Math.max(-1.15, Math.min(1.15, (center - mid) / mid));
+        // 焦点卡附近做平滑回正：|t| < 0.35 时按比例收拢到完整态，避免硬切换跳变
+        if (index === focusIndex) {
+          const damp = Math.min(1, Math.abs(t) / 0.35);
+          t *= damp;
+        }
         const at = Math.abs(t);
-        const scale = 1 - 0.14 * at;
+        const scale = 1 - 0.1 * at;
         const tx = at * at * txMax;
-        const rx = -t * 30;
-        const opacity = Math.max(0.3, 1 - 0.55 * at * at);
+        const rx = -t * 24;
+        // 两端卡只做轻微渐隐（下限 0.55），保证始终可读，渐变遮罩负责边缘过渡
+        const opacity = Math.max(0.55, 1 - 0.35 * at * at);
         card.style.transform = `translateX(${tx.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
         card.style.opacity = opacity.toFixed(2);
         card.style.zIndex = String(100 - Math.round(at * 50));

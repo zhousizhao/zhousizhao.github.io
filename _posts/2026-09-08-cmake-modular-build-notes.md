@@ -1,9 +1,9 @@
 ---
 title: "CMake 常用指令速查与模块化构建实践"
-date: 2026-09-08 16:30:00
+date: 2026-09-08 16:30:00 +0800
 categories: 技术栈扩展
 tags: [CMake, 技术栈扩展]
-excerpt: "整理 CMake 中库链接作用域、多目录源码收集、子模块依赖、find_package 及交叉编译 SYSROOT 配置的关键用法与避坑经验。"
+excerpt: "CMAKE学习记录"
 ---
 ## CMAKE学习
 
