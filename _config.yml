@@ -35,3 +35,4 @@ exclude:
   - node_modules/
   - Gemfile
   - Gemfile.lock
+  - 写作指南.md
