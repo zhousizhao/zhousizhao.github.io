@@ -1,6 +1,6 @@
-```markdown
 ---
 layout: post
+project: device-lab
 title: "Linux GDB：Core Dump 分析入门"
 date: 2026-09-07
 categories: Linux GDB

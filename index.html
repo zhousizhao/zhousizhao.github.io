@@ -22,6 +22,7 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
       <p class="hero-lede">这里收集我在软硬件交界处做过的判断：一条链路为什么延迟，一个服务为什么启动失败，以及一个模型怎样在资源有限的设备上跑起来。</p>
       <div class="hero-actions" aria-label="首页操作">
         <a class="button button-primary" href="#notes">阅读文章</a>
+        <a class="button button-primary" href="#projects">项目</a>
         <a class="button button-secondary" href="{{ '/about/' | relative_url }}">了解我</a>
       </div>
       {% if latest_post %}
@@ -70,19 +71,6 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
       <p>不写泛泛的教程，只保留从现象、假设、验证到结论的过程。</p>
     </div>
 
-    <div class="filter-row" role="toolbar" aria-label="按分类筛选文章">
-      <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全部</button>
-      {% assign rendered_categories = "" %}
-      {% for post in site.posts %}
-        {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
-        {% assign marker = category | append: "|" %}
-        {% unless rendered_categories contains marker %}
-          <button class="filter-button" type="button" data-filter="{{ category | escape }}" aria-pressed="false">{{ category }}</button>
-          {% assign rendered_categories = rendered_categories | append: marker %}
-        {% endunless %}
-      {% endfor %}
-    </div>
-
     <div class="bookshelf-intro">
       <p>书架上的每一本笔记都对应一个真实分类。选中一本，翻开目录。</p>
       <span>{{ shelf_categories | size }} 本分类笔记</span>
@@ -108,14 +96,14 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
                 {% endif %}
               {% endfor %}
               {% case category %}
-                {% when "音视频" %}
-                  {% assign category_description = "采集、缓冲、同步和回放：追踪一段声音在设备里走过的完整路径。" %}
-                {% when "嵌入式 Linux" %}
-                  {% assign category_description = "启动流程、服务状态、驱动边界和系统调试，把黑盒问题拆成可验证的假设。" %}
-                {% when "Linux GDB" %}
-                  {% assign category_description = "从 core dump 到调用栈，用调试器还原程序最后一次失控的现场。" %}
-                {% when "工程实践" %}
-                  {% assign category_description = "记录项目推进、工具链配置和复盘方法，沉淀下一次可以直接复用的流程。" %}
+                {% when "嵌入式Linux驱动" %}
+                  {% assign category_description = "主要记录一些关于嵌入式linux驱动的学习笔记。" %}
+                {% when "嵌入式Linux应用" %}
+                  {% assign category_description = "主要记录一些关于嵌入式linux应用的学习笔记。" %}
+                {% when "音视频学习" %}
+                  {% assign category_description = "主要记录一些关于音视频链路的学习笔记。" %}  
+                {% when "技术栈扩展" %}
+                  {% assign category_description = "主要记录一些关于技术栈扩展的学习笔记。" %}
                 {% else %}
                   {% assign category_description = "围绕这个主题持续整理问题、验证过程和最终结论。" %}
               {% endcase %}
@@ -135,6 +123,19 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
       </div>
     </div>
 
+    <div class="filter-row" role="toolbar" aria-label="按分类筛选文章">
+      <button class="filter-button is-active" type="button" data-filter="all" aria-pressed="true">全部</button>
+      {% assign rendered_categories = "" %}
+      {% for post in site.posts %}
+        {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
+        {% assign marker = category | append: "|" %}
+        {% unless rendered_categories contains marker %}
+          <button class="filter-button" type="button" data-filter="{{ category | escape }}" aria-pressed="false">{{ category }}</button>
+          {% assign rendered_categories = rendered_categories | append: marker %}
+        {% endunless %}
+      {% endfor %}
+    </div>
+
     <div class="post-index">
       {% for post in site.posts %}
         {% assign category = post.categories | first | default: post.category | default: "工程笔记" %}
@@ -146,9 +147,17 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
           <div class="post-item-main">
             <p>{{ category }}</p>
             <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-            <p class="post-excerpt">{{ post.description | default: post.excerpt | strip_html | normalize_whitespace | truncate: 118 }}</p>
+            <p class="post-excerpt">{{ post.description | default: post.excerpt | strip_html | strip_newlines | strip | truncate: 118 }}</p>
           </div>
-          <a class="read-link" href="{{ post.url | relative_url }}" aria-label="阅读 {{ post.title | escape }}">阅读文章</a>
+          <div class="note-actions">
+            {% if post.project %}
+              {% assign rel = site.projects | where: "slug", post.project | first %}
+              {% if rel %}
+                <a class="read-link" href="{{ rel.url | relative_url }}" aria-label="查看相关项目 {{ rel.name | escape }}">相关项目</a>
+              {% endif %}
+            {% endif %}
+            <a class="read-link" href="{{ post.url | relative_url }}" aria-label="阅读 {{ post.title | escape }}">阅读文章</a>
+          </div>
         </article>
       {% endfor %}
     </div>
@@ -157,8 +166,8 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
 </section>
 
 <section id="projects" class="section-band projects-section" aria-labelledby="projects-title">
-  <div class="container project-layout">
-    <div class="section-heading project-heading">
+  <div class="container">
+    <div class="section-heading">
       <div>
         <p class="section-kicker">项目</p>
         <h2 id="projects-title">正在被反复打磨的工具和系统</h2>
@@ -167,16 +176,16 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
     </div>
     <div class="project-scene" data-project-scene>
       <div class="project-deck" data-project-deck>
-        <div class="deck-board" aria-hidden="true"></div>
         <div class="project-grid">
           {% for project in site.projects %}
-            <a class="project-card" href="{{ project.link | default: 'https://github.com/zhousizhao?tab=repositories' }}" target="_blank" rel="noreferrer" data-tilt-card>
-              <span class="project-icon" aria-hidden="true">{% include project-icon.html name=project.icon %}</span>
+            <a class="project-card" href="{{ project.url | relative_url }}" data-tilt-card>
+              <span class="project-icon" aria-hidden="true">{% if project.image %}<img src="{{ project.image | relative_url }}" alt="" loading="lazy">{% else %}{% include project-icon.html name=project.icon %}{% endif %}</span>
               <span class="project-card-text">
                 <small>{{ project.name }}</small>
                 <strong>{{ project.title }}</strong>
                 <em>{{ project.stack }}</em>
               </span>
+              <span class="project-index" aria-hidden="true">{{ forloop.index | prepend: "0" | slice: -2, 2 }}</span>
             </a>
           {% endfor %}
         </div>
@@ -215,7 +224,7 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
               <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
               <span>
                 <strong>{{ post.title }}</strong>
-                <small>{{ post.description | default: post.excerpt | strip_html | normalize_whitespace | truncate: 86 }}</small>
+                <small>{{ post.description | default: post.excerpt | strip_html | strip_newlines | strip | truncate: 86 }}</small>
               </span>
             </a>
           {% endfor %}

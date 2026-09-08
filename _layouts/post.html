@@ -27,12 +27,31 @@ layout: default
   </details>
 
   <div class="post-body">
+    <aside class="post-side">
+      <div class="post-toc" data-post-toc hidden>
+        <p class="post-toc-title">本文目录</p>
+        <nav class="post-toc-list" aria-label="本文目录" data-post-toc-desktop></nav>
+      </div>
+    </aside>
     <div class="post-content">
       {{ content }}
     </div>
-    <aside class="post-toc" data-post-toc hidden>
-      <p class="post-toc-title">本文目录</p>
-      <nav class="post-toc-list" aria-label="本文目录" data-post-toc-desktop></nav>
+    <aside class="post-side post-side-right">
+      <div class="post-book">
+        <p class="post-toc-title">本书目录 · {{ post_category }}</p>
+        <nav class="post-book-list" aria-label="本书目录">
+          {% assign book_posts = site.posts | reverse %}
+          {% for book_post in book_posts %}
+            {% assign book_post_category = book_post.categories | first | default: book_post.category | default: "工程笔记" %}
+            {% if book_post_category == post_category %}
+              <a class="post-book-link{% if book_post.url == page.url %} is-current{% endif %}" href="{{ book_post.url | relative_url }}"{% if book_post.url == page.url %} aria-current="page"{% endif %}>
+                <span>{{ book_post.date | date: "%m.%d" }}</span>
+                <strong>{{ book_post.title }}</strong>
+              </a>
+            {% endif %}
+          {% endfor %}
+        </nav>
+      </div>
     </aside>
   </div>
 

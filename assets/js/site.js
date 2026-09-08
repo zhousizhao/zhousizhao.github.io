@@ -117,31 +117,120 @@
 
   const projectScene = document.querySelector("[data-project-scene]");
   const projectDeck = document.querySelector("[data-project-deck]");
+  const projectCards = projectDeck
+    ? Array.from(projectDeck.querySelectorAll(".project-card"))
+    : [];
+  // 项目区使用手表式曲面滚动：一次展示 3 张，两端透明内凹，中间完整
+  const projectCurved =
+    projectScene && projectDeck && projectCards.length > 0 && !reduceMotion.matches;
 
-  if (projectScene && projectDeck && !reduceMotion.matches && finePointer.matches) {
-    let deckFrame = 0;
-    let deckX = 0;
-    let deckY = 0;
-    const baseRx = parseFloat(getComputedStyle(projectDeck).getPropertyValue("--rx")) || 10;
-    const baseRy = parseFloat(getComputedStyle(projectDeck).getPropertyValue("--ry")) || -10;
+  if (projectCurved) {
+    projectScene.classList.add("is-curved");
+    let curveFrame = 0;
+    let cardBases = [];
 
-    const applyDeckTilt = () => {
-      deckFrame = 0;
-      projectDeck.style.setProperty("--rx", `${(baseRx - deckY * 6).toFixed(2)}deg`);
-      projectDeck.style.setProperty("--ry", `${(baseRy + deckX * 8).toFixed(2)}deg`);
+    // offsetTop 的参照系不可靠（preserve-3d 会让 offsetParent 跳过 deck），
+    // 手动沿 offsetParent 链累加到 deck，拿到含 padding 的真实未滚动位置
+    const offsetWithinDeck = (el) => {
+      let y = 0;
+      let node = el;
+      while (node && node !== projectDeck) {
+        y += node.offsetTop;
+        node = node.offsetParent;
+      }
+      return y;
     };
 
-    projectScene.addEventListener("pointermove", (event) => {
-      const rect = projectScene.getBoundingClientRect();
-      deckX = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
-      deckY = ((event.clientY - rect.top) / rect.height - 0.5) * 2;
-      if (!deckFrame) deckFrame = window.requestAnimationFrame(applyDeckTilt);
+    const layoutCurve = () => {
+      const cardH = projectCards[0] ? projectCards[0].offsetHeight : 0;
+      if (!cardH) return;
+      const gap = parseFloat(getComputedStyle(projectDeck.querySelector(".project-grid")).rowGap) || 0;
+      const visible = Math.min(3, projectCards.length);
+      // 场景高度精确等于 3 张卡 + 2 个间距，保证“一次只显示三个”
+      projectScene.style.height = `${Math.round(cardH * visible + gap * (visible - 1))}px`;
+      const viewH = projectScene.clientHeight;
+      const pad = Math.max(0, viewH / 2 - cardH / 2);
+      projectDeck.style.paddingTop = `${pad}px`;
+      projectDeck.style.paddingBottom = `${pad}px`;
+      // padding 落定后再缓存每张卡的中心位置，滚动帧里只读 scrollTop
+      cardBases = projectCards.map((card) => offsetWithinDeck(card) + card.offsetHeight / 2);
+    };
+
+    const applyCurve = () => {
+      curveFrame = 0;
+      const viewH = projectScene.clientHeight;
+      const mid = viewH / 2;
+      const txMax = Math.min(64, projectScene.clientWidth * 0.07);
+      projectCards.forEach((card, index) => {
+        const center = (cardBases[index] || 0) - projectDeck.scrollTop;
+        const t = Math.max(-1.15, Math.min(1.15, (center - mid) / mid));
+        const at = Math.abs(t);
+        const scale = 1 - 0.14 * at;
+        const tx = at * at * txMax;
+        const rx = -t * 30;
+        const opacity = Math.max(0.3, 1 - 0.55 * at * at);
+        card.style.transform = `translateX(${tx.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+        card.style.opacity = opacity.toFixed(2);
+        card.style.zIndex = String(100 - Math.round(at * 50));
+      });
+    };
+
+    const requestCurve = () => {
+      if (!curveFrame) curveFrame = window.requestAnimationFrame(applyCurve);
+    };
+
+    layoutCurve();
+    applyCurve();
+    projectDeck.addEventListener("scroll", requestCurve, { passive: true });
+    window.addEventListener("resize", () => {
+      layoutCurve();
+      requestCurve();
+    });
+    // 字体/图片加载后卡高可能变化，重新量一次
+    window.addEventListener("load", () => {
+      layoutCurve();
+      requestCurve();
     });
 
-    projectScene.addEventListener("pointerleave", () => {
-      projectDeck.style.setProperty("--rx", `${baseRx}deg`);
-      projectDeck.style.setProperty("--ry", `${baseRy}deg`);
+    // 鼠标拖动滚动（触屏走原生滚动）
+    let dragStartY = 0;
+    let dragStartScroll = 0;
+    let dragging = false;
+    let dragMoved = false;
+
+    projectDeck.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "mouse") return;
+      dragging = true;
+      dragMoved = false;
+      dragStartY = event.clientY;
+      dragStartScroll = projectDeck.scrollTop;
+      projectDeck.classList.add("is-dragging");
     });
+
+    window.addEventListener("pointermove", (event) => {
+      if (!dragging) return;
+      const dy = event.clientY - dragStartY;
+      if (Math.abs(dy) > 4) dragMoved = true;
+      projectDeck.scrollTop = dragStartScroll - dy;
+    });
+
+    window.addEventListener("pointerup", () => {
+      dragging = false;
+      projectDeck.classList.remove("is-dragging");
+    });
+
+    // 拖动结束后拦截误触发的卡片点击
+    projectDeck.addEventListener(
+      "click",
+      (event) => {
+        if (dragMoved) {
+          event.preventDefault();
+          event.stopPropagation();
+          dragMoved = false;
+        }
+      },
+      true
+    );
   }
 
   const notebookModal = document.querySelector("[data-notebook-modal]");

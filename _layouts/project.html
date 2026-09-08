@@ -1,0 +1,57 @@
+---
+layout: default
+---
+<article class="post-shell">
+  <div class="article-progress" aria-hidden="true"><span></span></div>
+  <div class="post-topline container">
+    <a class="quiet-link" href="{{ '/' | relative_url }}#projects">返回项目列表</a>
+    <span>{{ page.stack }}</span>
+  </div>
+
+  <header class="post-header container">
+    <p class="post-kicker">{{ page.name }}</p>
+    <h1>{{ page.title }}</h1>
+    {% if page.excerpt %}
+      <p class="post-lead">{{ page.excerpt | strip_html }}</p>
+    {% endif %}
+    <div class="post-meta project-meta" aria-label="项目信息">
+      <span class="project-meta-icon" aria-hidden="true">{% if page.image %}<img src="{{ page.image | relative_url }}" alt="">{% else %}{% include project-icon.html name=page.icon %}{% endif %}</span>
+      <span>{{ page.stack }}</span>
+      {% if page.link %}
+        <a class="quiet-link" href="{{ page.link }}" target="_blank" rel="noreferrer">查看源码</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <details class="post-toc-inline container" data-post-toc-inline hidden>
+    <summary>本页目录</summary>
+    <nav class="post-toc-list" aria-label="本页目录" data-post-toc-mobile></nav>
+  </details>
+
+  <div class="post-body">
+    <aside class="post-side">
+      <div class="post-toc" data-post-toc hidden>
+        <p class="post-toc-title">本页目录</p>
+        <nav class="post-toc-list" aria-label="本页目录" data-post-toc-desktop></nav>
+      </div>
+    </aside>
+    <div class="post-content">
+      {{ content }}
+    </div>
+  </div>
+
+  {% assign related_posts = site.posts | where: "project", page.slug %}
+  {% if related_posts.size > 0 %}
+    <div class="container project-related">
+      <p class="project-related-title">相关文章</p>
+      <nav class="post-neighbors project-related-grid" aria-label="相关文章">
+        {% for rp in related_posts %}
+          <a class="neighbor-link" href="{{ rp.url | relative_url }}">
+            <span>{{ rp.date | date: "%Y.%m.%d" }}</span>
+            <strong>{{ rp.title }}</strong>
+          </a>
+        {% endfor %}
+      </nav>
+    </div>
+  {% endif %}
+</article>

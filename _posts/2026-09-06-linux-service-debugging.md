@@ -1,5 +1,6 @@
 ---
 layout: post
+project: device-lab
 title: "定位设备端服务启动失败的几个层次"
 date: 2026-09-06 09:30:00 +0800
 category: "嵌入式 Linux"

@@ -1,4 +1,4 @@
-# 周思朝的博客
+# 周思朝的个人博客
 
 这是一个基于 Jekyll 的 GitHub Pages 个人博客。文章放在 `_posts/` 中，按 `YYYY-MM-DD-title.md` 命名，提交后由 GitHub Pages 自动生成。
 
