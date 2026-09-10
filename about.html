@@ -3,86 +3,93 @@ layout: default
 title: 关于
 permalink: /about/
 ---
-<div class="about-dark">
+<div class="about-page">
   <div class="container">
 
-    <!-- ===== 顶部：名字 + 一句话 + 身份卡 ===== -->
-    <header class="about-hero" data-reveal-group>
-      <div class="about-hero-copy">
-        <p class="about-eyebrow">关于我</p>
-        <h1 class="about-name">周思朝<span class="about-name-mark" aria-hidden="true"></span></h1>
-        <p class="about-tagline">嵌入式软件工程师。</p>
-        <p class="about-brief">日常热衷于电子DIY开发,</p>
-        <div class="about-skill-row">
-          <span>Embedded Linux</span>
-          <span>Audio &amp; Video</span>
-          <span>C / C++</span>
-          <span>Edge AI</span>
-        </div>
+    <!-- ===== 顶部 ===== -->
+    <header class="about-hero">
+      <div class="about-hero-text">
+        <p class="about-eyebrow about-rise about-rise-1">关于我</p>
+        <h1 class="about-name about-rise about-rise-2">Hi，我是周思朝<span class="about-mark"></span></h1>
+        <p class="about-tagline about-rise about-rise-3">一个在软硬件之间来回折腾的工程师，日常喜欢捣鼓一些小玩意。目前主要从事嵌入式软件开发(偏linux应用方向)，目前还只是一个小白，欢迎交流。</p>
+        <p class="about-brief about-rise about-rise-4">这里是我的个人博客。写下来的大多是自己的学习过程中攒下的知识、和一些自己DIY的项目。如果哪篇对你有用，欢迎留言告诉我。</p>
       </div>
-
-      <aside class="identity-card" aria-label="个人信息卡片">
-        <div class="identity-card-panel">
-          <div class="identity-card-header">
-            <span class="identity-card-dot"></span>
-            <span class="identity-card-dot"></span>
-            <span class="identity-card-dot"></span>
-          </div>
-          <div class="identity-card-main">
-            <div class="avatar-shell">
-              <span class="avatar-fallback" aria-hidden="true">ZS</span>
-              <img src="https://github.com/zhousizhao.png" alt="周思朝的头像" loading="lazy" onerror="this.remove()">
-            </div>
-            <div class="identity-card-name">
-              <strong>周思朝</strong>
-              <small>Zhou Sizhao · Embedded Engineer</small>
-            </div>
-          </div>
-          <dl class="identity-card-rows">
-            <div>
-              <dt>坐标</dt>
-              <dd>深圳 · Shenzhen</dd>
-            </div>
-            <div>
-              <dt>方向</dt>
-              <dd>嵌入式 Linux / 音视频 / 边缘视觉</dd>
-            </div>
-            <div>
-              <dt>邮箱</dt>
-              <dd>sizhaozhou@gmail.com</dd>
-            </div>
-          </dl>
-          <div class="signal-lines" aria-hidden="true">
-            <span style="--w: 74%"></span>
-            <span style="--w: 48%"></span>
-            <span style="--w: 86%"></span>
-          </div>
+      <div class="about-hero-figure about-rise about-rise-3" data-figure>
+        <div class='figure-stack'>
+          <img class='figure-img figure-body' src="{{ '/assets/images/about/character-body.webp' | relative_url }}"
+               alt='周思朝的卡通形象' width='494' height='902' draggable='false'>
+          <img class='figure-eyes' src="{{ '/assets/images/about/character-eyes.webp' | relative_url }}"
+               alt='' aria-hidden='true' width='494' height='902' draggable='false' data-figure-eyes>
+          <img class='figure-liner' src="{{ '/assets/images/about/character-liner.webp' | relative_url }}"
+               alt='' aria-hidden='true' width='494' height='902' draggable='false'>
         </div>
-      </aside>
+        <div class="figure-shadow" aria-hidden="true"></div>
+      </div>
     </header>
 
-    <!-- ===== 现在在做 ===== -->
-    <section class="about-block" aria-labelledby="about-now" data-reveal-group>
-      <h2 id="about-now" class="about-block-title">现在在做</h2>
-      <ul class="about-line-list">
-        <li>
-          <span class="about-line-name">嵌入式音视频链路</span>
-          <span class="about-line-note">采集、编码到推流的端到端调优</span>
-        </li>
-        <li>
-          <span class="about-line-name">这个博客</span>
-          <span class="about-line-note">持续整理工程笔记与复盘</span>
-        </li>
-      </ul>
+    <!-- ===== 我会什么 ===== -->
+    <section class="about-section about-rise about-rise-5" aria-labelledby="about-skills">
+      <h2 id="about-skills" class="about-section-title">我会什么</h2>
+      <div class="skill-rows">
+        <div class="skill-row">
+          <span class="skill-label">嵌入式软件开发</span>
+          <div class="skill-desc">
+            内核裁剪、驱动调试、设备树、Linux应用开发
+            <span class="skill-tag">ARM</span>
+            <span class="skill-tag">交叉编译</span>
+          </div>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label">硬件 DIY</span>
+          <div class="skill-desc">
+            从原理图到PCB再到焊接调试
+            <span class="skill-tag">原理图</span>
+            <span class="skill-tag">PCB</span>
+          </div>
+        </div>
+        <div class="skill-row">
+          <span class="skill-label">编程语言</span>
+          <div class="skill-desc">
+            日常用 C/C++ 和 Python，偶尔写点 Shell
+            <span class="skill-tag">C/C++</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">Shell</span>
+          </div>
+        </div>
+      </div>
     </section>
 
-
     <!-- ===== 联系 ===== -->
-    <section class="about-block" aria-labelledby="about-contact" data-reveal-group>
-      <h2 id="about-contact" class="about-block-title">联系</h2>
+    <section class="about-section" aria-labelledby="about-contact">
+      <h2 id="about-contact" class="about-section-title">联系我</h2>
       <div class="about-contact-row">
-        <a href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">GitHub</a>
-        <a href="mailto:sizhaozhou@gmail.com">邮箱</a>
+        <a class="about-contact-btn" href="https://github.com/zhousizhao" target="_blank" rel="noreferrer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a class="about-contact-btn" href="mailto:zhousizhao@example.com">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+          邮箱
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== 留言板 ===== -->
+    <section class="about-comments" aria-labelledby="about-comments">
+      <h2 id="about-comments" class="about-comments-title">畅所欲言</h2>
+      <div class="guestbook" data-guestbook>
+        <form class="guestbook-form" data-guestbook-form>
+          <textarea class="guestbook-input" data-guestbook-input rows="4" maxlength="1000"
+                    placeholder="写下你的想法、建议，或者只是打个招呼…" required></textarea>
+          <div class="guestbook-bar">
+            <span class="guestbook-hint">发布需登录 GitHub，会跳转确认，内容随即显示在这里</span>
+            <button type="submit" class="guestbook-submit">发布留言</button>
+          </div>
+          <p class="guestbook-note" data-guestbook-note hidden>已在 GitHub 打开发布页，提交后回到这里刷新即可看到。</p>
+        </form>
+        <div class="guestbook-list" data-guestbook-list>
+          <p class="guestbook-status">留言加载中…</p>
+        </div>
       </div>
     </section>
 

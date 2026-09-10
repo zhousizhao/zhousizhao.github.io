@@ -8,7 +8,6 @@ baseurl: ""
 markdown: kramdown
 
 plugins:
-  - jekyll-feed
   - jekyll-sitemap
 
 collections:
@@ -35,4 +34,5 @@ exclude:
   - node_modules/
   - Gemfile
   - Gemfile.lock
+  - README.md
   - 写作指南.md
