@@ -1435,6 +1435,56 @@ body.modal-open {
   display: none;
 }
 
+/* 项目曲面滚动条：自绘半透明（Windows 覆盖式原生滑条会自动隐藏，各端表现不一） */
+.project-scrollbar {
+  position: absolute;
+  top: 26px;
+  bottom: 26px;
+  right: 0;
+  width: 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 200;
+  pointer-events: none;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.project-scrollbar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  background: rgba(23, 33, 29, 0.08);
+  border-radius: 999px;
+}
+
+.project-scrollbar.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.project-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  height: 40px;
+  background: rgba(23, 33, 29, 0.32);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.project-scene:hover .project-scrollbar-thumb,
+.project-scrollbar.is-active .project-scrollbar-thumb {
+  background: rgba(23, 33, 29, 0.48);
+}
+
+
 .project-scene.is-curved .project-card {
   --px: 0px;
   --pz: 0px;
@@ -2208,6 +2258,104 @@ body.modal-open {
   flex-shrink: 0;
 }
 
+/* 邮箱弹窗 */
+.mail-pop-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+button.about-contact-btn {
+  font: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.mail-pop {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  width: min(280px, 86vw);
+  padding: 14px;
+  background: #fffdf9;
+  border: 1px solid #ddd3bc;
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgba(23, 33, 29, 0.16);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 40;
+}
+
+.mail-pop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.mail-pop::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: #fffdf9;
+  border-right: 1px solid #ddd3bc;
+  border-bottom: 1px solid #ddd3bc;
+  transform: translate(-50%, -5px) rotate(45deg);
+}
+
+.mail-pop-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #a2937a;
+  letter-spacing: 0.06em;
+}
+
+.mail-pop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  font: inherit;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.mail-pop-item:hover {
+  background: rgba(184, 114, 42, 0.07);
+  border-color: rgba(184, 114, 42, 0.25);
+}
+
+.mail-pop-label {
+  flex: 0 0 auto;
+  font-size: 13px;
+  color: #4a4234;
+}
+
+.mail-pop-addr {
+  font-size: 13px;
+  color: #8a7d63;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mail-pop-item.is-copied .mail-pop-addr {
+  color: #b8722a;
+}
+
+.mail-pop-tip {
+  margin: 8px 2px 0;
+  font-size: 11px;
+  color: #b7ab8f;
+}
 /* 留言板 */
 .about-comments {
   margin-top: 72px;
@@ -2253,6 +2401,42 @@ body.modal-open {
   background: #fff;
   box-shadow: 0 0 0 3px rgba(184, 114, 42, 0.14);
 }
+.guestbook-nick {
+  width: 220px;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 1px solid #ddd3bc;
+  border-radius: 10px;
+  background: #fffdf9;
+  color: #26221a;
+  font: inherit;
+  font-size: 14.5px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.guestbook-nick::placeholder {
+  color: #b3a88e;
+}
+
+.guestbook-nick:focus {
+  outline: none;
+  border-color: #b8722a;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(184, 114, 42, 0.14);
+}
+
+/* 蜜罐字段：真人不可见，机器人填了则静默丢弃 */
+.guestbook-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
 
 .guestbook-bar {
   display: flex;
@@ -2289,6 +2473,12 @@ body.modal-open {
 .guestbook-submit:active {
   transform: translateY(0);
 }
+.guestbook-submit:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+}
+
 
 .guestbook-note {
   margin: 10px 0 0;

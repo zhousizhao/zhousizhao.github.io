@@ -107,7 +107,7 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
                 {% else %}
                   {% assign category_description = "围绕这个主题持续整理问题、验证过程和最终结论。" %}
               {% endcase %}
-              <button class="shelf-book book-tone-{{ tone_index }}" type="button" role="listitem" data-book-category="{{ category | escape }}" data-book-title="{{ category | escape }}" data-book-description="{{ category_description | escape }}" aria-pressed="false">
+              <button class="shelf-book book-tone-{{ tone_index }}" type="button" role="listitem" data-book-category="{{ category | escape }}" data-book-description="{{ category_description | escape }}" aria-pressed="false">
                 <span class="book-face book-back" aria-hidden="true"></span>
                 <span class="book-face book-pages" aria-hidden="true"></span>
                 <span class="book-face book-top" aria-hidden="true"></span>
@@ -189,6 +189,9 @@ description: 周思朝的个人技术博客，记录嵌入式 Linux、音视频�
             </a>
           {% endfor %}
         </div>
+      </div>
+      <div class="project-scrollbar" data-project-scrollbar aria-hidden="true">
+        <span class="project-scrollbar-thumb" data-project-scrollbar-thumb></span>
       </div>
     </div>
   </div>

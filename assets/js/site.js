@@ -120,7 +120,7 @@
   const projectCards = projectDeck
     ? Array.from(projectDeck.querySelectorAll(".project-card"))
     : [];
-  // 项目区使用手表式曲面滚动：一次展示 3 张，两端透明内凹，中间完整
+  // 项目区手表式曲面滚动常开（reduced-motion 除外），与线上一致的展示逻辑
   const projectCurved =
     projectScene && projectDeck && projectCards.length > 0 && !reduceMotion.matches;
 
@@ -145,9 +145,8 @@
       const cardH = projectCards[0] ? projectCards[0].offsetHeight : 0;
       if (!cardH) return;
       const gap = parseFloat(getComputedStyle(projectDeck.querySelector(".project-grid")).rowGap) || 0;
-      // 场景恒为 3 张卡 + 2 个间距高：项目不足 3 个时居中卡完整、相邻卡仍可见，
-      // 项目多时不喧宾夺主，保证“一次只显示三个”
-      const visible = 3;
+      // 场景高度 = min(3, 项目数) 个卡位：项目少时不留顶部死区，项目多时仍是一次看三张
+      const visible = Math.min(3, projectCards.length);
       projectScene.style.height = `${Math.round(cardH * visible + gap * (visible - 1))}px`;
       const viewH = projectScene.clientHeight;
       const pad = Math.max(0, viewH / 2 - cardH / 2);
@@ -210,6 +209,58 @@
       layoutCurve();
       requestCurve();
     });
+
+    // 自绘半透明滚动条：原生滑条在 Windows 覆盖式策略下会自动隐藏，各端表现不一
+    const scrollbar = projectScene.querySelector("[data-project-scrollbar]");
+    const scrollbarThumb = projectScene.querySelector("[data-project-scrollbar-thumb]");
+
+    const updateScrollbar = () => {
+      if (!scrollbar || !scrollbarThumb) return;
+      const scrollable = projectDeck.scrollHeight - projectDeck.clientHeight;
+      if (scrollable <= 4) {
+        scrollbar.classList.remove("is-visible");
+        return;
+      }
+      scrollbar.classList.add("is-visible");
+      const trackH = scrollbar.clientHeight;
+      const thumbH = Math.max(36, (projectDeck.clientHeight / projectDeck.scrollHeight) * trackH);
+      const top = (projectDeck.scrollTop / scrollable) * (trackH - thumbH);
+      scrollbarThumb.style.height = `${thumbH.toFixed(1)}px`;
+      scrollbarThumb.style.transform = `translateY(${top.toFixed(1)}px)`;
+    };
+
+    updateScrollbar();
+    projectDeck.addEventListener("scroll", updateScrollbar, { passive: true });
+    window.addEventListener("resize", updateScrollbar);
+    window.addEventListener("load", updateScrollbar);
+
+    // 滑条可交互：点击跳转 + 按住拖动（拖动期间关掉滚动吸附，避免抖动）
+    if (scrollbar && scrollbarThumb) {
+      const jumpTo = (clientY) => {
+        const rect = scrollbar.getBoundingClientRect();
+        const thumbH = scrollbarThumb.getBoundingClientRect().height;
+        const ratio = (clientY - rect.top - thumbH / 2) / Math.max(1, rect.height - thumbH);
+        const max = projectDeck.scrollHeight - projectDeck.clientHeight;
+        projectDeck.scrollTop = Math.max(0, Math.min(1, ratio)) * max;
+      };
+      const releaseScrollbar = () => {
+        scrollbar.classList.remove("is-active");
+        projectDeck.classList.remove("is-dragging");
+      };
+
+      scrollbar.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        scrollbar.classList.add("is-active");
+        projectDeck.classList.add("is-dragging");
+        if (scrollbar.setPointerCapture) scrollbar.setPointerCapture(event.pointerId);
+        jumpTo(event.clientY);
+      });
+      scrollbar.addEventListener("pointermove", (event) => {
+        if (scrollbar.classList.contains("is-active")) jumpTo(event.clientY);
+      });
+      scrollbar.addEventListener("pointerup", releaseScrollbar);
+      scrollbar.addEventListener("pointercancel", releaseScrollbar);
+    }
 
     // 鼠标拖动滚动（触屏走原生滚动）
     let dragStartY = 0;
@@ -709,17 +760,19 @@
     }
   }
 
-  // ===== 留言板：GitHub Issues 公开 API（免配置，标题前缀【留言】过滤） =====
+  // ===== 留言板：自绘表单 + Supabase 存储（免登录，站内直接发布） =====
   const guestbook = document.querySelector("[data-guestbook]");
   if (guestbook) {
     const gbForm = guestbook.querySelector("[data-guestbook-form]");
+    const gbName = guestbook.querySelector("[data-guestbook-name]");
     const gbInput = guestbook.querySelector("[data-guestbook-input]");
+    const gbHp = guestbook.querySelector("[data-guestbook-hp]");
     const gbNote = guestbook.querySelector("[data-guestbook-note]");
     const gbList = guestbook.querySelector("[data-guestbook-list]");
-    const GB_REPO = "zhousizhao/zhousizhao.github.io";
-    const GB_PREFIX = "【留言】";
-    const GB_CACHE_KEY = "guestbook-cache-v1";
-    const GB_CACHE_TTL = 5 * 60 * 1000;
+    const gbSubmit = gbForm ? gbForm.querySelector(".guestbook-submit") : null;
+    const SB_URL = "https://drcjjxdryakrawnezuqn.supabase.co/rest/v1/comments";
+    const SB_KEY = "sb_publishable_DjLaR_cSRes0p3gK-i2w7Q_4SKnTNlv";
+    const GB_NAME_KEY = "guestbook-name";
 
     const escapeHtml = (str) =>
       str.replace(/[&<>"']/g, (ch) => ({
@@ -754,20 +807,8 @@
 
         const avatar = document.createElement("div");
         avatar.className = "guestbook-avatar";
-        const login = item.user || "访客";
-        if (item.avatar && /^https:\/\//.test(item.avatar)) {
-          const img = document.createElement("img");
-          img.src = item.avatar;
-          img.alt = "";
-          img.loading = "lazy";
-          img.addEventListener("error", () => {
-            img.remove();
-            avatar.textContent = login.trim().charAt(0).toUpperCase();
-          });
-          avatar.appendChild(img);
-        } else {
-          avatar.textContent = login.trim().charAt(0).toUpperCase();
-        }
+        const login = (item.name || "访客").trim() || "访客";
+        avatar.textContent = login.charAt(0).toUpperCase();
 
         const body = document.createElement("div");
         const meta = document.createElement("div");
@@ -794,81 +835,156 @@
       });
     };
 
-    const readCache = () => {
-      try {
-        const raw = sessionStorage.getItem(GB_CACHE_KEY);
-        if (!raw) return null;
-        const cached = JSON.parse(raw);
-        if (Date.now() - cached.t > GB_CACHE_TTL) return null;
-        return cached.items;
-      } catch (e) {
-        return null;
-      }
-    };
-
-    const writeCache = (items) => {
-      try {
-        sessionStorage.setItem(GB_CACHE_KEY, JSON.stringify({ t: Date.now(), items }));
-      } catch (e) {
-        /* 缓存不可用则跳过 */
-      }
+    const showNote = (msg) => {
+      if (!gbNote) return;
+      gbNote.textContent = msg;
+      gbNote.hidden = !msg;
     };
 
     const loadMessages = async () => {
-      const cached = readCache();
-      if (cached) {
-        renderMessages(cached);
-        return;
-      }
       try {
         const res = await fetch(
-          `https://api.github.com/repos/${GB_REPO}/issues?state=open&per_page=100`
+          `${SB_URL}?select=name,body,created_at&order=created_at.desc&limit=100`,
+          { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const items = data
-          .filter(
-            (it) =>
-              !it.pull_request &&
-              typeof it.title === "string" &&
-              it.title.startsWith(GB_PREFIX)
-          )
-          .map((it) => ({
-            user: it.user && it.user.login ? it.user.login : "访客",
-            avatar: it.user && it.user.avatar_url ? it.user.avatar_url : "",
-            created_at: it.created_at,
-            body: it.body || "",
-          }))
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        writeCache(items);
-        renderMessages(items);
+        renderMessages(await res.json());
       } catch (e) {
-        renderStatus(
-          `留言加载失败，也可以直接到 <a href="https://github.com/${GB_REPO}/issues" target="_blank" rel="noopener">GitHub Issues</a> 查看。`
-        );
+        renderStatus("留言加载失败，请稍后刷新再试。");
       }
     };
 
+    try {
+      const saved = localStorage.getItem(GB_NAME_KEY);
+      if (saved && gbName) gbName.value = saved;
+    } catch (e) {
+      /* 本地存储不可用则跳过 */
+    }
+
     loadMessages();
 
-    if (gbForm && gbInput) {
-      gbForm.addEventListener("submit", (e) => {
+    if (gbForm && gbName && gbInput) {
+      gbForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (gbHp && gbHp.value) return; // 蜜罐命中，静默丢弃
+        const name = gbName.value.trim();
         const text = gbInput.value.trim();
-        if (!text) return;
-        const url =
-          `https://github.com/${GB_REPO}/issues/new` +
-          `?title=${encodeURIComponent(GB_PREFIX)}` +
-          `&body=${encodeURIComponent(text)}`;
-        window.open(url, "_blank", "noopener");
-        gbInput.value = "";
-        if (gbNote) gbNote.hidden = false;
+        if (!name || !text) return;
+        if (gbSubmit) {
+          gbSubmit.disabled = true;
+          gbSubmit.textContent = "发布中…";
+        }
         try {
-          sessionStorage.removeItem(GB_CACHE_KEY);
+          const res = await fetch(SB_URL, {
+            method: "POST",
+            headers: {
+              apikey: SB_KEY,
+              Authorization: `Bearer ${SB_KEY}`,
+              "Content-Type": "application/json",
+              Prefer: "return=minimal",
+            },
+            body: JSON.stringify({ name, body: text }),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          gbInput.value = "";
+          try {
+            localStorage.setItem(GB_NAME_KEY, name);
+          } catch (err) {
+            /* ignore */
+          }
+          showNote("发布成功，感谢留言。");
+          await loadMessages();
         } catch (err) {
-          /* ignore */
+          showNote("发布失败，请稍后再试。");
+        } finally {
+          if (gbSubmit) {
+            gbSubmit.disabled = false;
+            gbSubmit.textContent = "发布留言";
+          }
         }
       });
     }
+  }
+  /* 邮箱弹窗 */
+  const mailToggle = document.querySelector("[data-mail-pop-toggle]");
+  const mailPop = document.querySelector("[data-mail-pop]");
+
+  if (mailToggle && mailPop) {
+    let mailCloseTimer = null;
+
+    const openMailPop = () => {
+      if (mailCloseTimer) {
+        clearTimeout(mailCloseTimer);
+        mailCloseTimer = null;
+      }
+      mailPop.hidden = false;
+      requestAnimationFrame(() => {
+        mailPop.classList.add("is-open");
+        mailToggle.setAttribute("aria-expanded", "true");
+      });
+    };
+
+    const closeMailPop = () => {
+      mailPop.classList.remove("is-open");
+      mailToggle.setAttribute("aria-expanded", "false");
+      mailCloseTimer = setTimeout(() => {
+        mailPop.hidden = true;
+      }, 220);
+    };
+
+    mailToggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (mailPop.classList.contains("is-open")) {
+        closeMailPop();
+      } else {
+        openMailPop();
+      }
+    });
+
+    mailPop.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("click", () => {
+      if (mailPop.classList.contains("is-open")) closeMailPop();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && mailPop.classList.contains("is-open")) closeMailPop();
+    });
+
+    mailPop.querySelectorAll("[data-mail-copy]").forEach((item) => {
+      const addr = item.getAttribute("data-mail-copy");
+      const addrEl = item.querySelector(".mail-pop-addr");
+      item.addEventListener("click", async () => {
+        let ok = false;
+        try {
+          await navigator.clipboard.writeText(addr);
+          ok = true;
+        } catch (err) {
+          const tmp = document.createElement("textarea");
+          tmp.value = addr;
+          tmp.style.position = "fixed";
+          tmp.style.opacity = "0";
+          document.body.appendChild(tmp);
+          tmp.select();
+          try {
+            ok = document.execCommand("copy");
+          } catch (err2) {
+            ok = false;
+          }
+          tmp.remove();
+        }
+        if (ok && addrEl) {
+          const original = addrEl.textContent;
+          item.classList.add("is-copied");
+          addrEl.textContent = "已复制";
+          setTimeout(() => {
+            addrEl.textContent = original;
+            item.classList.remove("is-copied");
+          }, 1200);
+        }
+      });
+    });
   }
 })();
